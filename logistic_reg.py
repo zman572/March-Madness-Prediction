@@ -1,46 +1,66 @@
 import pandas as pd
 from sklearn.linear_model import LogisticRegression as LR
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, roc_auc_score, log_loss
+from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, log_loss
 from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+import pickle
 
 
 
-def create_train_test_set(dataset, split=0.2, rand=35):
+def create_train_test_set(dataset, split=0.2, rand=40):
     
-
-    X = dataset[["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency", "eFGPct", "TOPct", "FTRate","OffFT", "DefFT", "Adjusted Tempo"]].values
+    #Select Features to be used for training
+    X = dataset[["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency",
+                "eFGPct", "TOPct", "ORPct", "FTRate", "OffFT", "DefFT", "Seed", "Adjusted Tempo"]].values
+    
+    #Target to predict. (Rather or not the team made the post season tournment. Will eith be 0 or 1)
     Y = dataset[["Post-Season Tournament"]].values.ravel()
 
+    #Scale the data
     scale = MinMaxScaler()
-    scale.fit_transform(X)
+    X = scale.fit_transform(X)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=split, random_state=rand, shuffle=True)
+    #Split into train and test set
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=split, random_state=rand)
 
     return X_train, X_test, Y_train, Y_test
 
 
-def run_log_reg(X_train, X_test, Y_train, iter=300):
+def train_log_reg(X_train, X_test, Y_train, iter=300):
 
+    #Train the model
     LR_model = LR(max_iter=iter)
     LR_model.fit(X_train,Y_train)
 
-    pred_probs = LR_model.predict_proba(X_test)
+    #Predict
+    pred_probs = LR_model.predict_proba(X_test)[:,1]
     pred = LR_model.predict(X_test)
 
+    with open("Trained Models/trained_log_reg.pkl", "wb") as f:
+        pickle.dump(LR_model, f)
+    
     return pred, pred_probs
 
 
-def eval_metrics(pred, Y_test):
+def eval_metrics(pred, pred_probs, Y_test):
 
+    #Evaluate Model based on predictions and prediciton probs
     acc = accuracy_score(Y_test, pred)
-    roc = roc_auc_score(Y_test, pred)
-    loss = log_loss(Y_test, pred)
-
+    roc_sc = roc_auc_score(Y_test, pred_probs)
+    fpr, tpr, thresholds = roc_curve(Y_test, pred_probs)
+    loss = log_loss(Y_test, pred_probs)
+    
+    plt.title("Log Reg ROC Curve on Training Data")
+    plt.xlabel("FPR")
+    plt.ylabel("TPR")
+    plt.plot(fpr, tpr)
+    plt.savefig("Graphs/log_reg_roc.png")
+    
     print("Performance metrics:\n")
-    print(f"Accuracy: {acc}")
-    print(f"ROC AUC Score: {roc}")
-    print(f"Loss {loss}")
+    print(f"Accuracy: {acc:.4f}")
+    print(f"ROC AUC Score: {roc_sc:.4f}")
+    print(f"Loss {loss:.4f}")
 
 
 
@@ -48,9 +68,14 @@ if __name__ =="__main__":
     
     dataset = pd.read_csv("dataset.csv")
 
+    #Feature selection and split dataset
     X_train, X_test, Y_train, Y_test = create_train_test_set(dataset)
-    pred, pred_probs = run_log_reg(X_train, X_test, Y_train)
-    eval_metrics(pred, Y_test)
+
+    #Train model and predict
+    pred, pred_probs = train_log_reg(X_train, X_test, Y_train)
+
+    #Evaluate model
+    eval_metrics(pred, pred_probs, Y_test)
 
 
 
