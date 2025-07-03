@@ -11,8 +11,7 @@ import pickle
 def create_train_test_set(dataset, split=0.2, rand=40):
     
     #Select Features to be used for training
-    X = dataset[["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency",
-                "eFGPct", "TOPct", "ORPct", "FTRate", "OffFT", "DefFT", "Seed", "Adjusted Tempo"]].values
+    X = dataset[["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency", "Adjusted Tempo"]].values
     
     #Target to predict. (Rather or not the team made the post season tournment. Will eith be 0 or 1)
     Y = dataset[["Post-Season Tournament"]].values.ravel()
@@ -36,6 +35,7 @@ def train_log_reg(X_train, X_test, Y_train, iter=300):
     #Predict
     pred_probs = LR_model.predict_proba(X_test)[:,1]
     pred = LR_model.predict(X_test)
+
 
     with open("Trained Models/trained_log_reg.pkl", "wb") as f:
         pickle.dump(LR_model, f)
@@ -73,6 +73,8 @@ if __name__ =="__main__":
 
     #Train model and predict
     pred, pred_probs = train_log_reg(X_train, X_test, Y_train)
+
+    print(pred_probs)
 
     #Evaluate model
     eval_metrics(pred, pred_probs, Y_test)
