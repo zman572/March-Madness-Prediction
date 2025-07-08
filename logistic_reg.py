@@ -2,31 +2,30 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression as LR
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, log_loss
-from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import pickle
 
 
 
-def create_train_test_set(dataset, split=0.2, rand=40):
+def create_train_test_set(dataset, split=0.2, rand=42):
+
+    features = ["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency",
+                "eFGPct", "TOPct", "Adjusted Tempo"]
     
     #Select Features to be used for training
-    X = dataset[["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency", "Adjusted Tempo"]].values
+    X = dataset[features].values
     
     #Target to predict. (Rather or not the team made the post season tournment. Will eith be 0 or 1)
-    Y = dataset[["Post-Season Tournament"]].values.ravel()
+    Y = dataset["Tournament Target"].values
 
-    #Scale the data
-    scale = MinMaxScaler()
-    X = scale.fit_transform(X)
-
+    
     #Split into train and test set
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=split, random_state=rand)
 
     return X_train, X_test, Y_train, Y_test
 
 
-def train_log_reg(X_train, X_test, Y_train, iter=300):
+def train_log_reg(X_train, X_test, Y_train, iter=500):
 
     #Train the model
     LR_model = LR(max_iter=iter)
@@ -40,7 +39,7 @@ def train_log_reg(X_train, X_test, Y_train, iter=300):
     with open("Trained Models/trained_log_reg.pkl", "wb") as f:
         pickle.dump(LR_model, f)
     
-    return pred, pred_probs
+    return pred, pred_probs, LR_model
 
 
 def eval_metrics(pred, pred_probs, Y_test):
@@ -67,15 +66,15 @@ def eval_metrics(pred, pred_probs, Y_test):
 if __name__ =="__main__":
     
     dataset = pd.read_csv("dataset.csv")
+    val = pd.read_csv("validation_dataset.csv")
 
     #Feature selection and split dataset
     X_train, X_test, Y_train, Y_test = create_train_test_set(dataset)
 
     #Train model and predict
-    pred, pred_probs = train_log_reg(X_train, X_test, Y_train)
+    pred, pred_probs, LR_model = train_log_reg(X_train, X_test, Y_train)
 
-    print(pred_probs)
-
+    
     #Evaluate model
     eval_metrics(pred, pred_probs, Y_test)
 
