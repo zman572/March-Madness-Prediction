@@ -19,8 +19,8 @@ features = ["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency",
 scale = MinMaxScaler()
 df[features] = scale.fit_transform(df[features])
 
-df.to_csv("dataset.csv")
+df.to_csv("Datasets/dataset.csv")
 
 this_season = df[(df["Season"] == 2025) & (df["Tournament Target"] == 1)]
-this_season.to_csv("validation_dataset.csv")
+this_season.to_csv("Datasets/validation/validation_dataset.csv")
 

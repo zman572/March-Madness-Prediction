@@ -65,8 +65,8 @@ def eval_metrics(pred, pred_probs, Y_test):
 
 if __name__ =="__main__":
     
-    dataset = pd.read_csv("dataset.csv")
-    val = pd.read_csv("validation_dataset.csv")
+    dataset = pd.read_csv("Datasets/dataset.csv")
+    val = pd.read_csv("Datasets/validation/validation_dataset.csv")
 
     #Feature selection and split dataset
     X_train, X_test, Y_train, Y_test = create_train_test_set(dataset)

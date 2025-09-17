@@ -33,12 +33,9 @@ def run_matchup(teamA, teamB, val_dataset):
 
 
 
-
-
-
 if __name__ == "__main__":
 
-    val_dataset = pd.read_csv("validation_dataset.csv")
+    val_dataset = pd.read_csv("Datasets/validation/validation_dataset.csv")
 
     teamA = input("\nEnter the first team: ")
     teamB = input("\nEnter the second team: ")
