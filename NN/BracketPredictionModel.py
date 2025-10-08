@@ -1,21 +1,21 @@
 from torch import nn
 
 class BracketPredictor(nn.Module):
-    def __init__(self):
+    def __init__(self, input_size=5, hidden_layers=[32, 64]):
         super().__init__()
-        self.linear = nn.Sequential(
-            nn.Linear(5, 32),
-            nn.ReLU(),
 
-            nn.Linear(32, 64),
-            nn.ReLU(),
+        layers = []
+        in_features = input_size
 
-            nn.Linear(64, 128),
-            nn.ReLU(),
+        for h in hidden_layers:
+            layers.append(nn.Linear(in_features, h))
+            layers.append(nn.ReLU())
+            in_features = h
 
-            nn.Linear(128, 1)
-        )
+        # Output layer (binary classification → 1 neuron)
+        layers.append(nn.Linear(in_features, 1))
 
+        self.linear = nn.Sequential(*layers)
         self._init_weights()
 
     def _init_weights(self):
@@ -25,6 +25,4 @@ class BracketPredictor(nn.Module):
                 nn.init.zeros_(m.bias)
 
     def forward(self, x):
-        logits = self.linear(x)
-        return logits
-
+        return self.linear(x)
