@@ -1,6 +1,7 @@
 import pandas as pd
 import pickle
 from collections import defaultdict
+from utils.utility_functions import get_features, load_model_from_pkl
 
 def nested_dict():
     return defaultdict(list)
@@ -32,11 +33,10 @@ def run_matchup(teamA, teamB, dataset):
 
     '''Uses the trained log reg model to predict a matchup given two teams and their features'''
 
-    with open("Trained Models/trained_log_reg.pkl", "rb") as f:
+    with open("LogReg/Trained Models/trained_log_reg.pkl", "rb") as f:
         log_reg_model = pickle.load(f)
 
-    features = ["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency",
-                "eFGPct", "TOPct", "Adjusted Tempo"]
+    features = get_features()
     
     
     teamA_data = dataset[dataset["Mapped ESPN Team Name"] == teamA]
@@ -115,9 +115,12 @@ if __name__ == "__main__":
 
     matchup_path = "Matchups/init_matches_round1.csv"
     init_matchups = readMatchups(matchup_path) #Read in the intial round one matchups from CSV
-    dataset = pd.read_csv("../Datasets/validation/validation_dataset.csv") #Get validation data to be used as model features
+    dataset = pd.read_csv("Datasets/validation/validation_dataset.csv") #Get validation data to be used as model features
 
     bracket = predict_bracket(init_matchups, dataset) #Create the complete bracket
+
+
+    
 
     
 

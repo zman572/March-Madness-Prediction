@@ -2,11 +2,13 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader, TensorDataset
+from NN.BracketPredictionModel import BracketPredictor
+import pickle
 
 def get_features():
     
     features = ["Adjusted Offensive Efficiency", "Adjusted Defensive Efficiency",
-        "eFGPct", "TOPct", "Adjusted Tempo", "ORPct", "FTRate", "OffFT", "DefFT"]
+        "eFGPct", "TOPct", "Adjusted Tempo", "Efficiency_Ratio"]
     
     return features
     
@@ -46,5 +48,30 @@ def get_dataset_loader(X_data, Y_data, batch_size):
 
     loader = DataLoader(TensorDataset(X_data, Y_data), batch_size=batch_size, shuffle=True)
     return loader
+
+
+def save_model_as_pkl(model, params, path, input_size, hidden_layers):
+    """Save model and configuration as a .pkl file."""
+    checkpoint = {
+        "model_state_dict": model.state_dict(),
+        "input_size": input_size,
+        "hidden_layers": hidden_layers,
+        "params": params
+    }
+    with open(path, "wb") as f:
+        pickle.dump(checkpoint, f)
+
+
+def load_model_from_pkl(path, device):
+    """Load model and metadata from a .pkl file."""
+    with open(path, "rb") as f:
+        checkpoint = pickle.load(f)
+
+    model = BracketPredictor(
+        input_size=checkpoint["input_size"],
+        hidden_layers=checkpoint["hidden_layers"]
+    ).to(device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    return model, checkpoint["params"]
 
 
